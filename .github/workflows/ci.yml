@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Ruff
+        run: |
+          uv run --frozen --only-group dev ruff check .
+          uv run --frozen --only-group dev ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      # GitHub runners have no GPU: install the CPU wheels of the locked torch/torchvision
+      # instead of the CUDA ones pyproject.toml selects on Linux (~200 MB vs ~3 GB).
+      - name: Install
+        run: |
+          uv venv
+          uv pip install torch==2.12.0 torchvision==0.27.0 --index-url https://download.pytorch.org/whl/cpu
+          uv pip install --no-sources -e . pytest
+      - name: Pytest
+        run: uv run --no-sync pytest -q

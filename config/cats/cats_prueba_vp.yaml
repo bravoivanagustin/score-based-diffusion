@@ -1,0 +1,44 @@
+# Memorización de 2 gatos (data/cats-prueba, 32x32) con una U-Net chica (~1M params) en CPU.
+# Réplica del entrenamiento del notebook 06.
+#   uv run python scripts/train.py --config config/cats/cats_prueba_vp.yaml
+
+sde:
+  name: vp                # defaults beta_min=0.1 / beta_max=20.0
+  # data_dim no se declara: para imágenes se deriva del bloque data:
+
+data:
+  kind: images
+  root: data/cats-prueba
+  image_size: 32          # forma de evento (3, 32, 32)
+  batch_size: 2           # el dataset completo (solo hay 2 imágenes)
+  augment: false
+  shuffle: false
+  seed: 0
+
+model:
+  name: unet
+  score_parametrization: epsilon   # la red predice el ruido; score = -red/sigma_t
+  in_channels: 3
+  image_size: 32          # debe coincidir con data.image_size
+  base_channels: 32
+  channel_mults: [1, 2, 2]   # image_size divisible por 2**(len-1)
+  num_res_blocks: 1
+  embed_dim: 64
+  time_embed_dim: 128
+  attn_resolutions: []
+  groups: 8               # divide a {32, 64}
+  time_scale: 1000.0
+
+train:
+  num_steps: 5000
+  lr: 1.0e-3
+  t_eps: 1.0e-4
+  device: cpu
+  log_every: 500
+  seed: 0
+  time_sampling: log_uniform
+  ema_decay: 0.999        # el checkpoint publica la sombra EMA (+ hermano _raw.pt)
+
+out:
+  checkpoint: models/cats/cats_prueba_vp.pt
+  loss_curve: models/cats/cats_prueba_vp_loss.png

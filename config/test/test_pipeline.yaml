@@ -1,0 +1,55 @@
+# Smoke test del pipeline de imágenes en CPU (~1 min): U-Net mínima, AMP, EMA, snapshots,
+# retención rolling, barra de progreso y reanudación (Ctrl-C a mitad y relanzar).
+#   uv run python scripts/train.py --config config/test/test_pipeline.yaml
+
+sde:
+  name: vp
+
+data:
+  kind: images
+  root: data/cats-prueba
+  image_size: 16            # chico a propósito: rápido en CPU
+  batch_size: 2
+  augment: false
+  shuffle: false
+  seed: 0
+  num_workers: 0
+  pin_memory: false
+  # Para probar la validación: partir las 2 imágenes en 1 + 1
+  #   uv run python scripts/split_dataset.py --src data/cats-prueba --out data/cats-prueba-split --val-frac 0.5 --seed 0
+  # y reemplazar root/batch_size por:
+  #   root: data/cats-prueba-split/train
+  #   batch_size: 1
+  #   val_root: data/cats-prueba-split/val
+
+model:
+  name: unet
+  score_parametrization: epsilon
+  in_channels: 3
+  image_size: 16            # debe coincidir con data.image_size
+  base_channels: 16
+  channel_mults: [1, 2]
+  num_res_blocks: 1
+  embed_dim: 32
+  time_embed_dim: 64
+  attn_resolutions: []
+  groups: 8
+  time_scale: 1000.0
+
+train:
+  num_steps: 150
+  lr: 1.0e-3
+  t_eps: 1.0e-4
+  device: cpu
+  log_every: 30
+  seed: 0
+  time_sampling: log_uniform
+  ema_decay: 0.999
+  amp: true                 # en CPU usa bfloat16 (sin speedup; ejercita el camino de AMP)
+  checkpoint_every: 30
+  keep_last_checkpoints: 2
+
+out:
+  checkpoint: models/test/test_pipeline.pt
+  loss_curve: models/test/test_pipeline_loss.png
+  train_log: models/test/test_pipeline_log.jsonl

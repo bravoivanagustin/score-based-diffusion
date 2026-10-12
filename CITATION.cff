@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "score-based-diffusion: score-based diffusion models via SDEs"
+abstract: >-
+  A PyTorch implementation of score-based generative modeling through stochastic
+  differential equations (VP, VE and sub-VP SDEs), with reverse-SDE and probability-flow
+  samplers, applied from 2D toy distributions to 64x64 images.
+authors:
+  - given-names: "Iván Agustín"
+    family-names: Bravo
+license: MIT
+repository-code: "https://github.com/bravoivanagustin/score-based-diffusion"
+url: "https://github.com/bravoivanagustin/score-based-diffusion"
+version: 0.1.0
+keywords:
+  - diffusion models
+  - score-based generative models
+  - stochastic differential equations
+  - pytorch

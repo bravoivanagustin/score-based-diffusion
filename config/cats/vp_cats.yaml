@@ -1,0 +1,37 @@
+# Plantilla mínima de una corrida de imágenes: VP-SDE sobre data/cats-v1 (64x64) con la U-Net en
+# su arquitectura por defecto. Solo cambia el bloque data: respecto del caso 2D.
+#   uv run python scripts/train.py --config config/cats/vp_cats.yaml
+
+sde:
+  name: vp                # vp | ve | sub_vp
+  beta_min: 0.1
+  beta_max: 20.0
+  # data_dim no se declara: para imágenes se deriva del bloque data:
+
+data:
+  kind: images            # points (default) | images
+  root: data/cats-v1
+  image_size: 64          # forma de evento (3, 64, 64); divisible por 2^(len(channel_mults)-1)
+  batch_size: 32
+  augment: true           # flip horizontal
+  crop: true
+  seed: 0
+
+train:
+  num_steps: 100000
+  lr: 0.0002
+  t_eps: 1.0e-4           # piso del muestreo de t (evita sigma -> 0)
+  time_sampling: log_uniform
+  seed: 0
+  device: cpu             # lento en CPU; usar cuda si hay GPU
+  grad_clip: 1.0
+  ema_decay: 0.999
+  checkpoint_every: 5000  # snapshot …_stepNNNNN.pt + sidecar de reanudación
+
+model:
+  name: unet
+  image_size: 64          # debe coincidir con data.image_size; el resto queda en sus defaults
+
+out:
+  checkpoint: models/cats/vp_cats.pt
+  loss_curve: models/cats/vp_cats_loss.png

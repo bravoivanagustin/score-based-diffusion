@@ -1,0 +1,49 @@
+# Variante GPU de test_pipeline.yaml: smoke corto donde AMP (fp16), num_workers/pin_memory y
+# cudnn.benchmark tienen efecto real. Requiere una GPU y un dataset de imágenes en data.root.
+#   uv run python scripts/train.py --config config/test/test_pipeline_gpu.yaml
+
+sde:
+  name: vp
+
+data:
+  kind: images
+  root: data/cats-v1        # cambiar a la carpeta de imágenes propia
+  image_size: 32
+  batch_size: 32
+  augment: true
+  shuffle: true
+  seed: 0
+  num_workers: 4
+  pin_memory: true
+
+model:
+  name: unet
+  score_parametrization: epsilon
+  in_channels: 3
+  image_size: 32            # debe coincidir con data.image_size
+  base_channels: 64
+  channel_mults: [1, 2, 2]
+  num_res_blocks: 2
+  embed_dim: 128
+  time_embed_dim: 256
+  attn_resolutions: [16]
+  groups: 32
+  time_scale: 1000.0
+
+train:
+  num_steps: 1000
+  lr: 1.0e-4
+  t_eps: 1.0e-4
+  device: cuda
+  log_every: 50
+  seed: 0
+  time_sampling: log_uniform
+  ema_decay: 0.999
+  amp: true
+  checkpoint_every: 100
+  keep_last_checkpoints: 2
+
+out:
+  checkpoint: models/test/test_pipeline_gpu.pt
+  loss_curve: models/test/test_pipeline_gpu_loss.png
+  train_log: models/test/test_pipeline_gpu_log.jsonl

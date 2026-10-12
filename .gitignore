@@ -1,0 +1,67 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+
+# === Empaquetado / build ===
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# === Entornos virtuales ===
+.venv/
+venv/
+env/
+ENV/
+
+# === Tests / cobertura / linters ===
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# === Jupyter ===
+.ipynb_checkpoints/
+
+# === Artefactos generados / pesos de modelos ===
+data/
+models/
+outputs/
+*.pt
+*.pth
+*.ckpt
+
+# === Images and PDFs (except README assets) ===
+*.jpg
+*.png
+*.pdf
+*.gif
+!assets/**
+
+# === Editores / IDE ===
+.vscode/
+.idea/
+*.swp
+
+# === Sistema operativo (Windows / OneDrive / macOS) ===
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+
+# === Claude y Antigravity ===
+.claude/
+.antigravity/
+.kiro/
+CLAUDE.md
+antigravity.md
+
+# === Docs ===
+docs/ 

@@ -1,0 +1,56 @@
+# Igual que cats_vp.yaml pero con el doble de pasos (120k), para observar el sobreajuste en la
+# curva de validación. Pensada para una GPU de 24 GB (RTX 3090).
+#
+# Requisito previo (una sola vez): partir data/cats-v1 en train/val hermanas.
+#   uv run python scripts/split_dataset.py --src data/cats-v1 --out data/cats-v1-split \
+#       --val-frac 0.05 --seed 0
+# Entrenar:
+#   uv run python scripts/train.py --config config/cats/cats_vp-overfitting.yaml
+
+sde:
+  name: vp
+
+data:
+  kind: images
+  root: data/cats-v1-split/train     # el train/ del split, no data/cats-v1 (la búsqueda es recursiva)
+  val_root: data/cats-v1-split/val   # opt-in: activa la pérdida de validación
+  image_size: 64
+  batch_size: 128
+  augment: true           # flip horizontal aleatorio
+  shuffle: true
+  seed: 0
+  num_workers: 8          # > 0 no funciona en Windows; bajarlo a 0 allí
+  pin_memory: true
+
+model:
+  name: unet
+  score_parametrization: epsilon
+  in_channels: 3
+  image_size: 64          # debe coincidir con data.image_size
+  base_channels: 128
+  channel_mults: [1, 2, 2, 2]
+  num_res_blocks: 2
+  embed_dim: 256
+  time_embed_dim: 512
+  attn_resolutions: [16, 8]
+  groups: 32
+  time_scale: 1000.0
+
+train:
+  num_steps: 120000
+  checkpoint_every: 15000  # cada snapshot pesa ~708 MB (pesos + sidecar de reanudación)
+  keep_last_checkpoints: 4 # retención rolling; el final y su _raw nunca se borran
+  val_every: 1000          # cadencia de validación, independiente de los snapshots
+  lr: 1.0e-4
+  t_eps: 1.0e-4
+  device: cuda
+  log_every: 1000
+  seed: 0
+  time_sampling: log_uniform
+  ema_decay: 0.999
+  amp: true               # la validación se computa siempre en fp32
+
+out:
+  checkpoint: models/cats/cats_vp-overfitting.pt
+  loss_curve: models/cats/cats_vp-overfitting_loss.png
+  train_log: models/cats/cats_vp-overfitting_train_log.jsonl

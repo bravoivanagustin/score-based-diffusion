@@ -1,0 +1,39 @@
+# VP-SDE entrenada sobre una mezcla 2D de 8 gaussianas con un MLP (CPU).
+#   uv run python scripts/train.py --config config/toy/vp_mixture.yaml
+
+sde:
+  name: vp                # vp | ve | sub_vp
+  beta_min: 0.1
+  beta_max: 20.0
+
+data:                     # ver `uv run python scripts/data_generation.py --help`
+  shape: mixture          # gaussian | mixture | two_moons | spiral | swiss_roll
+  dim: 2
+  n_samples: 5000
+  batch_size: 256
+  n_components: 8
+  seed: 0
+
+train:
+  num_steps: 19200
+  lr: 0.001
+  t_eps: 1.0e-4           # piso del muestreo de t (evita sigma -> 0)
+  time_sampling: log_uniform
+  seed: 0
+  device: cpu
+  grad_clip: 1.0
+  ema_decay: 0.999
+  # checkpoint_every: 50  # opcional: snapshot cada N pasos + sidecar de reanudación
+
+model:                    # opcional: sin este bloque se usa {name: mlp} dimensionado desde los datos
+  name: mlp
+  embed_dim: 128
+  hidden_dim: 512
+  num_blocks: 4
+  activation: silu
+  time_scale: 1000
+  score_parametrization: epsilon   # la red predice epsilon; score = -eps/sigma_t
+
+out:
+  checkpoint: models/toy/vp_mixture.pt
+  loss_curve: models/toy/vp_mixture_loss.png
